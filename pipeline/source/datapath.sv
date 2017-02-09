@@ -56,21 +56,21 @@ module datapath (
     pcif.new_pc = 0;
 
     //Extender ALUSrc
-    if (cuif.imm[15] == 1) begin
-      SignExtImm = {16'hffff, cuif.imm};
+    if (prif.ID_instruction_out[15]) begin
+      SignExtImm = {16'hffff, prif.ID_instruction_out[15:0]};
     end else begin
-      SignExtImm = {16'h0000, cuif.imm};
+      SignExtImm = {16'h0000, prif.ID_instruction_out[15:0]};
     end
     //Extender PCSrc 
     if (prif.ID_instruction_out[31:26] == BEQ) begin
-      if(prif.EX_zero_out == 1) begin
+      if(prif.EX_zero_in == 1) begin
         BranchAddr = prif.ID_pc_add4_out + {ZeroExtImm[29:0], 2'b00};
       end else begin
         BranchAddr = prif.ID_pc_add4_out;
       end
     end 
     if (prif.ID_instruction_out[31:26] == BNE) begin
-      if(prif.EX_zero_out == 0) begin
+      if(prif.EX_zero_in == 0) begin
         BranchAddr = prif.ID_pc_add4_out + {ZeroExtImm[29:0], 2'b00};
       end else begin
         BranchAddr = prif.ID_pc_add4_out;
@@ -92,9 +92,9 @@ module datapath (
       rfif.wsel = 5'b11111;
     end
     //Reg write
-    if(prif.ID_ALUSrc_out == 3'b100) begin 
-      rfif.wdat = {cuif.imm, 16'h0000}; //LUI
-    end else if (prif.ID_instruction_out[31:26] == JAL) begin
+    if(prif.MEM_ALUSrc_out == 3'b100) begin 
+      rfif.wdat = {prif.MEM_imm_out, 16'h0000}; //LUI
+    end else if (prif.MEM_instruction_out[31:26] == JAL) begin
       rfif.wdat = prif.MEM_pc_add4_out;
     end else if (prif.MEM_MemToReg_out) begin
       rfif.wdat = prif.MEM_dmemload_out;
@@ -132,7 +132,7 @@ end
 //Instruction
 //assign prif.IF_instruction_in = dpif.imemload;
 //Zero and Jump
-assign ZeroExtImm = {16'h0000, prif.ID_imm_in};
+assign ZeroExtImm = {16'h0000, prif.ID_instruction_out[15:0]};
 assign JumpAddr = {prif.ID_pc_add4_out[31:28], prif.ID_instruction_out[25:0],2'b00};
 //Reg Selection
 assign rfif.rsel1 = cuif.rs;
