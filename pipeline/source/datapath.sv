@@ -56,10 +56,10 @@ module datapath (
     pcif.new_pc = 0;
 
     //Extender ALUSrc
-    if (prif.ID_imm_out[15] == 1) begin
-      SignExtImm = {16'hffff, prif.ID_imm_out};
+    if (cuif.imm[15] == 1) begin
+      SignExtImm = {16'hffff, cuif.imm};
     end else begin
-      SignExtImm = {16'h0000, prif.ID_imm_out};
+      SignExtImm = {16'h0000, cuif.imm};
     end
     //Extender PCSrc 
     if (prif.ID_instruction_out[31:26] == BEQ) begin
@@ -93,7 +93,7 @@ module datapath (
     end
     //Reg write
     if(prif.ID_ALUSrc_out == 3'b100) begin 
-      rfif.wdat = {prif.ID_imm_out, 16'h0000}; //LUI
+      rfif.wdat = {cuif.imm, 16'h0000}; //LUI
     end else if (prif.ID_instruction_out[31:26] == JAL) begin
       rfif.wdat = prif.MEM_pc_add4_out;
     end else if (prif.MEM_MemToReg_out) begin
