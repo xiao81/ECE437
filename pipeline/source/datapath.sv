@@ -99,7 +99,7 @@ module datapath (
     end else if (prif.MEM_MemToReg_out) begin
       rfif.wdat = prif.MEM_dmemload_out;
     end else begin
-      rfif.wdat = prif.EX_port_out_out;
+      rfif.wdat = prif.MEM_port_out_out;
     end
 
     //ALU
@@ -116,21 +116,21 @@ module datapath (
   
     //PC    
     if (prif.EX_PCSrc_out == 3'b000) begin
-      pcif.new_pc = prif.IF_pc_add4_out;
-    end else if (cuif.PCSrc == 3'b001) begin
+      pcif.new_pc = pcif.npc;
+    end else if (prif.EX_PCSrc_out == 3'b001) begin
       pcif.new_pc = JumpAddr;
-    end else if (cuif.PCSrc == 3'b010) begin
+    end else if (prif.EX_PCSrc_out == 3'b010) begin
       pcif.new_pc = JumpAddr;
-    end else if (cuif.PCSrc == 3'b011) begin
+    end else if (prif.EX_PCSrc_out == 3'b011) begin
       pcif.new_pc = prif.ID_rdat1_out;
-    end else if (cuif.PCSrc == 3'b100) begin
+    end else if (prif.EX_PCSrc_out == 3'b100) begin
       pcif.new_pc = BranchAddr;
     end 
     
 end
 
 //Instruction
-assign prif.IF_instruction_in = dpif.imemload;
+//assign prif.IF_instruction_in = dpif.imemload;
 //Zero and Jump
 assign ZeroExtImm = {16'h0000, prif.ID_imm_in};
 assign JumpAddr = {prif.ID_pc_add4_out[31:28], prif.ID_instruction_out[25:0],2'b00};
@@ -138,17 +138,38 @@ assign JumpAddr = {prif.ID_pc_add4_out[31:28], prif.ID_instruction_out[25:0],2'b
 assign rfif.rsel1 = cuif.rs;
 assign rfif.rsel2 = cuif.rt;
 //PCEN
-assign pcif.PCEN = dpif.ihit;
+assign pcif.PCEN = dpif.ihit & (~dpif.dhit);
 //ALU
 assign aluif.port_a = prif.ID_rdat1_out;
 assign aluif.aluop = prif.ID_aluop_out;
 //Memory
 assign dpif.imemREN = 1;
-assign dpif.imemaddr = pcif.pc;
+assign dpif.imemaddr = pcif.new_pc;
 assign dpif.dmemREN = prif.EX_dREN_out;
 assign dpif.dmemWEN = prif.EX_dWEN_out;
 assign dpif.dmemstore = prif.EX_rdat2_out;
 assign dpif.dmemaddr = prif.EX_port_out_out;
+//prif IF
+assign prif.IF_instruction_in = (dpif.ihit) ? dpif.imemload : '0;
+assign prif.IF_pc_add4_in = pcif.npc;
+//prif ID
+assign prif.ID_RegWEN_in = cuif.RegWEN;
+assign ID_RegDst_in = cuif.RegDst;
+assign ID_MemToReg_in = cuif.MemToReg;
+assign ID_PCSrc_in = cuif.PCSrc;
+assign ID_ALUSrc_in = cuif.ALUSrc;
+assign ID_dWEN_in = cuif.dWEN;
+assign ID_dREN_in = cuif.dREN;
+assign ID_halt_in = cuif.halt;
+assign ID_aluop_in = cuif.aluop;
+assign ID_imm_in = cuif.imm;
+assign ID_shamt_in = cuif.shamt;
+assign ID_rs_in = cuif.rs;
+assign ID_rt_in = cuif.rt;
+assign ID_rd_in = cuif.rd;
+assign ID_rdat1_in = rfif.rdat1;
+assign ID_rdat2_in = rfif.rdat2;
+
 //halt
 always_ff @(posedge CLK or negedge nRST) begin
    if(~nRST) begin
