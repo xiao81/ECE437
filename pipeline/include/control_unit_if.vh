@@ -15,14 +15,15 @@ interface control_unit_if;
   logic MemToReg, RegWEN, dWEN, dREN, halt;
   logic [1:0] RegDst;
   logic [2:0] PCSrc,ALUSrc;
+  logic [1:0] regWsel;
   
   modport cu (
   	input instruction,
-  	output rs, rt, rd, aluop, imm, shamt, MemToReg, RegWEN, dWEN, dREN, halt, RegDst, PCSrc, ALUSrc
+  	output rs, rt, rd, aluop, imm, shamt, MemToReg, RegWEN, dWEN, dREN, halt, RegDst, PCSrc, ALUSrc, regWsel
   );
 
   modport tb (
-  	input rs, rt, rd, aluop, imm, shamt, MemToReg, RegWEN, dWEN, dREN, halt, RegDst, PCSrc, ALUSrc,
+  	input rs, rt, rd, aluop, imm, shamt, MemToReg, RegWEN, dWEN, dREN, halt, RegDst, PCSrc, ALUSrc, regWsel,
   	output instruction
   );
 

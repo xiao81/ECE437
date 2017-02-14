@@ -22,7 +22,7 @@ always_comb begin
   cuif.RegDst = 0;// 00: rd, 01: rt, 10: 31 
   cuif.PCSrc = 0; // 000: noJump, 001: J, 010: JAL, 011: JR, 100: Branch
   cuif.ALUSrc = 0; // 000: reg , 001: signExt , 010: zeroExt, 011: shamt, 100: LUI
-
+  cuif.regWsel = 0; // 00:from alu, 01:from memory, 10:from lui output, 11:from npc(for JAL) 
   //R type
   if (cuif.instruction[31:26] == RTYPE) begin
   	cuif.rs = cuif.instruction[25:21];
@@ -91,6 +91,7 @@ always_comb begin
   	cuif.PCSrc = 3'b010;
   	cuif.RegDst = 2'b10;
   	cuif.RegWEN =1;
+    cuif.regWsel = 2'b11;
   end else begin
   //I type
   	cuif.rs = cuif.instruction[25:21];
@@ -124,6 +125,7 @@ always_comb begin
   		LUI: begin
   			cuif.ALUSrc = 3'b100;
   			cuif.RegWEN = 1;
+        cuif.regWsel = 2'b10;
   		end
   		LW: begin
   			cuif.MemToReg = 1;
@@ -131,6 +133,7 @@ always_comb begin
   			cuif.aluop = ALU_ADD;
   			cuif.ALUSrc = 3'b001;
   			cuif.dREN =1;
+        cuif.regWsel = 2'b01;
   		end
   		ORI: begin
   			cuif.RegWEN = 1;
