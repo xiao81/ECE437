@@ -112,6 +112,9 @@ interface pipeline_registers_if;
   logic [31:0] MEM_port_out_out;
   logic [2:0] MEM_ALUSrc_out;
 
+  logic [31:0] MEM_dmemload_reg;
+  logic [31:0] MEM_regWsel_reg;
+
 
   modport pr (
   	input IF_instruction_in, IF_pc_add4_in,  ID_RegWEN_in, ID_RegDst_in, ID_MemToReg_in, ID_PCSrc_in,
@@ -128,7 +131,8 @@ interface pipeline_registers_if;
      EX_WriteData_out, MEM_instruction_out, MEM_pc_add4_out, MEM_RegWEN_out, 
      MEM_RegDst_out, MEM_MemToReg_out, MEM_PCSrc_out, MEM_dWEN_out, MEM_dREN_out, 
      MEM_halt_out, MEM_imm_out, MEM_shamt_out, MEM_rs_out, MEM_rt_out, MEM_rd_out, MEM_dmemload_out, MEM_port_out_out,
-     MEM_ALUSrc_out, EX_regWsel_out, EX_result_out, MEM_regWsel_out, MEM_result_out, ID_regWsel_out
+     MEM_ALUSrc_out, EX_regWsel_out, EX_result_out, MEM_regWsel_out, MEM_result_out, ID_regWsel_out,
+     MEM_dmemload_reg, MEM_regWsel_reg, EX_rdat1_out
      );
 
 endinterface : pipeline_registers_if

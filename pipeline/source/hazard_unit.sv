@@ -7,13 +7,11 @@ module hazard_unit (
 
 import cpu_types_pkg::*;
 
-assign huif.EX_reg = (prif.EX_instruction_out[31:26] != RTYPE) ? prif.EX_rt_out: prif.EX_rd_out;
-assign huif.MEM_reg = (prif.MEM_instruction_out[31:26] != RTYPE) ? prif.MEM_rt_out: prif.MEM_rd_out;
-
-assign huif.lw_hazard = (prif.EX_instruction_out[31:26] == LW && (prif.EX_rt_out == prif.ID_rs_out || prif.EX_rt_out == prif.ID_rt_out)) ? 1 : 0;
+assign huif.EX_reg = (huif.EX_instruction_out[31:26] != RTYPE) ? huif.EX_instruction_out[20:16] : huif.EX_instruction_out[15:11];
+assign huif.MEM_reg = (huif.MEM_instruction_out[31:26] != RTYPE) ? huif.MEM_instruction_out[20:16] : huif.MEM_instruction_out[15:11];
 
 always_comb begin
-	case (prif.EX_instruction_out[31:26])
+	case (huif.EX_instruction_out[31:26])
 		BEQ: begin
 			huif.EX_forward = 0;
 		end
@@ -31,7 +29,7 @@ always_comb begin
 		end
 		default : huif.EX_forward = 1;
 	endcase
-	case (prif.MEM_instruction_out[31:26])
+	case (huif.MEM_instruction_out[31:26])
 		BEQ: begin
 			huif.MEM_forward = 0;
 		end

@@ -123,7 +123,7 @@ always_comb begin
   			cuif.PCSrc = 3'b100; 
   		end
   		LUI: begin
-  			cuif.ALUSrc = 3'b100;
+  			//cuif.ALUSrc = 3'b100;
   			cuif.RegWEN = 1;
         cuif.regWsel = 2'b10;
   		end

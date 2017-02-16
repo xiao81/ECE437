@@ -9,9 +9,9 @@ interface hazard_unit_if;
   import cpu_types_pkg::*;
 
   //input
-
+  logic [31:0] EX_instruction_out;
+  logic [31:0] MEM_instruction_out;
   //output
-  logic lw_hazard;
   logic [4:0] EX_reg;
   logic [4:0] MEM_reg;
   logic EX_forward;
@@ -20,8 +20,13 @@ interface hazard_unit_if;
 
   // hazard unit ports
   modport hu (
-    output lw_hazard, EX_reg, MEM_reg, EX_forward, MEM_forward
+    input EX_instruction_out, MEM_instruction_out,
+    output  EX_reg, MEM_reg, EX_forward, MEM_forward
   );
+
+  modport tb (
+    output EX_instruction_out, MEM_instruction_out, 
+    input EX_reg, MEM_reg, EX_forward, MEM_forward);
 
 endinterface
 
