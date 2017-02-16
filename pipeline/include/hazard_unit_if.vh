@@ -14,11 +14,13 @@ interface hazard_unit_if;
   logic lw_hazard;
   logic [4:0] EX_reg;
   logic [4:0] MEM_reg;
+  logic EX_forward;
+  logic MEM_forward;
 
 
   // hazard unit ports
   modport hu (
-    output lw_hazard, EX_reg, MEM_reg
+    output lw_hazard, EX_reg, MEM_reg, EX_forward, MEM_forward
   );
 
 endinterface

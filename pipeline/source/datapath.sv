@@ -43,7 +43,7 @@ module datapath (
   register_file RF(CLK, nRST, rfif);
   alu ALU(aluif);
   hazard_unit HU(huif);
-  pipeline_registers PR(CLK, nRST, dpif.ihit, dpif.dhit, flush, huif.lw_hazard, prif);
+  pipeline_registers PR(CLK, nRST, dpif.ihit, dpif.dhit, huif.lw_hazard, flush, prif);
 
   word_t SignExtImm, ZeroExtImm, JumpAddr, BranchAddr, luiExtImm, shamt;
   word_t temp;
@@ -62,18 +62,18 @@ module datapath (
       SignExtImm = {16'h0000, prif.ID_instruction_out[15:0]};
     end
     //Extender PCSrc 
-    if (prif.ID_instruction_out[31:26] == BEQ) begin
+    if (prif.EX_instruction_out[31:26] == BEQ) begin
       if(prif.EX_zero_in == 1) begin
-        BranchAddr = prif.ID_pc_add4_out + {ZeroExtImm[29:0], 2'b00};
+        BranchAddr = prif.EX_pc_add4_out + {ZeroExtImm[29:0], 2'b00};
       end else begin
-        BranchAddr = prif.ID_pc_add4_out;
+        BranchAddr = prif.EX_pc_add4_out;
       end
     end 
-    if (prif.ID_instruction_out[31:26] == BNE) begin
+    if (prif.EX_instruction_out[31:26] == BNE) begin
       if(prif.EX_zero_in == 0) begin
-        BranchAddr = prif.ID_pc_add4_out + {ZeroExtImm[29:0], 2'b00};
+        BranchAddr = prif.EX_pc_add4_out + {ZeroExtImm[29:0], 2'b00};
       end else begin
-        BranchAddr = prif.ID_pc_add4_out;
+        BranchAddr = prif.EX_pc_add4_out;
       end
     end
     //Register file
@@ -104,39 +104,29 @@ module datapath (
     end */
 
     //ALU 
-    if(prif.ID_instruction_out[31:26] != RTYPE) begin
-      if(prif.ID_rs_out == huif.EX_reg) begin
-        aluif.port_a = prif.EX_result_out;
-      end
-      else if(prif.ID_rs_out == huif.MEM_reg) begin
-        aluif.port_a = (prif.MEM_regWsel_out == 2'b01) ? prif.MEM_dmemload_out : prif.MEM_result_out;
-      end
-      else begin
-        aluif.port_a = prif.ID_rdat1_out;
-      end
-    end else begin
-      if(prif.ID_rs_out == huif.EX_reg) begin
-        aluif.port_a = prif.EX_result_out;
-      end
-      else if(prif.ID_rs_out == huif.MEM_reg) begin
-        aluif.port_a = (prif.MEM_regWsel_out == 2'b01) ? prif.MEM_dmemload_out : prif.MEM_result_out;
-      end
-      else begin
-        aluif.port_a = prif.ID_rdat1_out;
-      end
-      if(prif.ID_dWEN_out) begin
-        temp = prif.ID_rdat2_out;
-      end
-      else if(prif.ID_rt_out ==huif.EX_reg) begin
-        temp = prif.EX_result_out;
-      end
-      else if(prif.ID_rt_out == huif.MEM_reg) begin
-        temp = (prif.MEM_regWsel_out == 2'b01) ? prif.MEM_dmemload_out : prif.MEM_result_out;
-      end
-      else begin
-        temp = prif.ID_rdat2_out;
-      end
+    
+    if(prif.ID_rs_out == huif.EX_reg && huif.EX_forward) begin
+      aluif.port_a = prif.EX_result_out;
     end
+    else if(prif.ID_rs_out == huif.MEM_reg && huif.MEM_forward) begin
+      aluif.port_a = (prif.MEM_regWsel_out == 2'b01) ? prif.MEM_dmemload_out : prif.MEM_result_out;
+    end
+    else begin
+      aluif.port_a = prif.ID_rdat1_out;
+    end
+    if(prif.ID_dWEN_out) begin
+      temp = prif.ID_rdat2_out;
+    end
+    else if(prif.ID_rt_out ==huif.EX_reg && huif.EX_forward) begin
+      temp = prif.EX_result_out;
+    end
+    else if(prif.ID_rt_out == huif.MEM_reg && huif.MEM_forward) begin
+      temp = (prif.MEM_regWsel_out == 2'b01) ? prif.MEM_dmemload_out : prif.MEM_result_out;
+    end
+    else begin
+      temp = prif.ID_rdat2_out;
+    end
+
   
     //PC   
     flush = 0; 
@@ -180,7 +170,7 @@ assign luiExtImm = {prif.ID_instruction_out[15:0], 16'h0000};
 assign rfif.rsel1 = prif.IF_instruction_out[25:21];
 assign rfif.rsel2 = prif.IF_instruction_out[20:16];
 //PCEN
-assign pcif.PCEN = flush ? (dpif.ihit|dpif.dhit) : dpif.ihit & (~dpif.dhit);
+assign pcif.PCEN = (enable) ? dpif.ihit && (!dpif.dhit) && (!plif.MEM_halt_out) : 0;
 //ALU
 //assign aluif.port_a = prif.ID_rdat1_out;
 assign aluif.port_b = (prif.ID_ALUSrc_out== 3'b000) ? temp : ((prif.ID_ALUSrc_out== 3'b001) ? SignExtImm : ((prif.ID_ALUSrc_out== 3'b010) ? ZeroExtImm : shamt));
@@ -208,7 +198,7 @@ assign prif.ID_RegDst_in = cuif.RegDst;
 assign prif.ID_RegWEN_in = cuif.RegWEN;
 assign prif.ID_rs_in = prif.IF_instruction_out[25:21];
 assign prif.ID_rt_in = prif.IF_instruction_out[20:16];
-assign prif.ID_rd_in = prif.ID_instruction_out[15:11];
+assign prif.ID_rd_in = prif.IF_instruction_out[15:11];
 
 /*
 assign prif.ID_MemToReg_in = cuif.MemToReg;
@@ -224,7 +214,7 @@ assign prif.ID_rd_in = cuif.rd;
 assign prif.EX_result_in = (prif.ID_regWsel_out == 2'b00) ? aluif.port_out : ((prif.ID_regWsel_out == 2'b10) ? luiExtImm : prif.ID_pc_add4_out);
 assign prif.EX_port_out_in = aluif.port_out;
 assign prif.EX_zero_in = aluif.zero;
-assign prif.EX_WriteData_in = (prif.ID_rt_out == huif.EX_reg) ? prif.EX_result_out : ((prif.ID_rt_out == huif.MEM_reg) ? ((prif.MEM_regWsel_out == 2'b01) ? prif.MEM_dmemload_out : prif.MEM_result_out) : prif.ID_rdat2_out);
+assign prif.EX_WriteData_in = (prif.ID_rt_out == huif.EX_reg && huif.EX_forward) ? prif.EX_result_out : ((prif.ID_rt_out == huif.MEM_reg && huif.MEM_forward) ? ((prif.MEM_regWsel_out == 2'b01) ? prif.MEM_dmemload_out : prif.MEM_result_out) : prif.ID_rdat2_out);
 //prif MEM
 assign prif.MEM_dmemload_in = dpif.dmemload;
 //halt

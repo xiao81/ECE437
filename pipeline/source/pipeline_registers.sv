@@ -3,11 +3,24 @@
 
 module pipeline_registers
 (
-  input logic CLK, nRST, ihit, dhit, flush, lw_hazard,
-  pipeline_registers_if.pr prif
+  input logic CLK, nRST, ihit, dhit, lw_hazard, flush
+  pipeline_registers_if.pr prif,
+  output logic enable
 );
 
   import cpu_types_pkg::*;
+
+  logic [31:0] MEM_instruction_reg; 
+  logic [2:0] MEM_PCSrc_reg;
+  logic [31:0] MEM_pc_add4_reg;
+  logic MEM_RegWEN_reg;
+  logic [31:0] MEM_result_reg; 
+  logic [1:0] MEM_RegDst_reg; 
+  logic MEM_halt_reg; 
+
+  assign enable = (prif.EX_instruction_out[31:26] == LW || prif.EX_instruction_out[31:26] == SW) 
+  ? (MEM_instruction_reg == prif.EX_instruction_out) && ihit && (!prif.MEM_halt_out)
+  : ihit && (!dhit) && (!plif.MEM_halt_out);
 
   always_ff @(posedge CLK or negedge nRST) begin : proc_
 	if(~nRST) begin
@@ -76,8 +89,10 @@ module pipeline_registers
 		prif.MEM_regWsel_out <= '0;
 		prif.MEM_result_out <= '0;
 
+		MEM_instruction_reg <= '0;
+
 	end else begin
-		if(ihit & ~dhit) begin
+		if(enable) begin
 			if(lw_hazard) begin
 				prif.EX_instruction_out <= '0;
 				prif.EX_pc_add4_out <= '0;
@@ -164,6 +179,8 @@ module pipeline_registers
 				prif.MEM_result_out <= prif.EX_result_out;
 				prif.MEM_RegDst_out <= prif.EX_RegDst_out;
 				prif.MEM_halt_out <= prif.EX_halt_out;
+				prif.MEM_regWsel_out <= prif.EX_regWsel_out;
+				prif.MEM_dmemload_out <= prif.MEM_dmemload_out;
 				prif.MEM_rs_out <= prif.EX_rs_out;
 				prif.MEM_rt_out <= prif.EX_rt_out;
 				prif.MEM_rd_out <= prif.EX_rd_out;
