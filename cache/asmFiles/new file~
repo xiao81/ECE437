@@ -1,0 +1,10 @@
+#--------------------------------------
+# Test branch and jumps
+#--------------------------------------
+  org 0x0000
+  ori   $1, $zero, 0xBA5C
+  ori   $2, $zero, 0x0080
+  beq   $zero, $zero, braZ
+  braZ:
+  sw    $1, 0($2)
+  HALT

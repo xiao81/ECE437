@@ -1,0 +1,1 @@
+pipeline_registers_if: cpu_types_pkg.vho pipeline_registers_if.vho
