@@ -1,1 +1,0 @@
-datapath: BTB.svo BTB_if.vho alu.svo alu_if.vho control_unit.svo control_unit_if.vho cpu_types_pkg.vho datapath_cache_if.vho hazard_unit.svo hazard_unit_if.vho pipeline_registers.svo pipeline_registers_if.vho predictor.svo predictor_if.vho program_counter.svo program_counter_if.vho register_file.svo register_file_if.vho datapath.svo

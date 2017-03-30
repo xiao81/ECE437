@@ -1,1 +1,0 @@
-pipeline_registers: cpu_types_pkg.vho pipeline_registers_if.vho pipeline_registers.svo
